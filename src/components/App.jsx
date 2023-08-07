@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import 'react-toastify/dist/ReactToastify.css';
 import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 import { fetchImages } from './services/api';
 
