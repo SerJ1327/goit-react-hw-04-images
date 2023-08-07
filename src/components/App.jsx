@@ -50,7 +50,7 @@ export const App = () => {
           setIsSowLoadMore(false);
         }
 
-        setImagesState([...imagesState, ...images.hits]);
+        setImagesState(prevImages => [...prevImages, ...images.hits]);
       } catch (error) {
         toast.error(
           `Opps, some error occured. Please, try again later. Error: ${error.message}`,
