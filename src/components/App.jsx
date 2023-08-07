@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -21,120 +21,106 @@ const toastConfig = {
   progress: undefined,
   theme: 'colored',
 };
-export class App extends Component {
-  state = {
-    images: [],
-    isShowModal: false,
-    isLoading: false,
-    isShowLoadMore: false,
-    selectedImage: { url: null, alt: null },
-    currentPage: 1,
-    query: '',
-    perPage: 12,
-  };
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      this.state.query !== prevState.query ||
-      this.state.currentPage !== prevState.currentPage
-    ) {
-      this.setState({ isLoading: true });
+export const App = () => {
+  const [imagesState, setImagesState] = useState([]);
+  const [isShowModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isShowLoadMore, setIsSowLoadMore] = useState(false);
+  const [selectedImage, setSelectedImage] = useState({ url: null, alt: null });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const isFirstRender = useRef(true);
+  const PER_PAGE = 12;
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    async function getImages() {
+      setIsLoading(true);
       try {
-        const images = await fetchImages(
-          this.state.query,
-          this.state.currentPage,
-          this.state.perPage
-        );
+        const images = await fetchImages(query, currentPage, PER_PAGE);
 
-        if (
-          images.totalHits - this.state.currentPage * this.state.perPage >
-          this.state.perPage
-        ) {
-          this.setState({ isShowLoadMore: true });
+        if (images.totalHits - currentPage * PER_PAGE > PER_PAGE) {
+          setIsSowLoadMore(true);
         } else {
-          this.setState({ isShowLoadMore: false });
+          setIsSowLoadMore(false);
         }
 
-        this.setState({
-          images: [...this.state.images, ...images.hits],
-          totalHits: images.totalHits,
-        });
+        setImagesState([...imagesState, ...images.hits]);
       } catch (error) {
         toast.error(
           `Opps, some error occured. Please, try again later. Error: ${error.message}`,
           toastConfig
         );
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
     }
-  }
 
-  onSubmit = input => {
-    const query = input.trim();
-
-    if (query && query !== this.state.query) {
-      this.setState({ currentPage: 1, query, images: [] });
+    if (query) {
+      getImages();
     }
+  }, [query, currentPage]);
 
-    if (query && query === this.state.query) {
-      this.setState({ currentPage: this.state.currentPage + 1 });
+  const onSubmit = input => {
+    const handleQuery = input.trim();
+    if (handleQuery && handleQuery !== query) {
+      setCurrentPage(1);
+      setQuery(handleQuery);
+      setImagesState([]);
+    }
+    if (handleQuery && handleQuery === query) {
+      setCurrentPage(prev => prev + 1);
     }
   };
 
-  onSelectedImage = largeImage => {
-    this.setState({ selectedImage: largeImage });
-    this.onOpenModal();
+  const onSelectedImage = largeImage => {
+    setSelectedImage(largeImage);
+    onOpenModal();
   };
 
-  onOpenModal = () => {
-    this.setState({ isShowModal: true });
+  const onOpenModal = () => {
+    setShowModal(true);
   };
 
-  onCloseModal = () => {
-    this.setState({ isShowModal: false });
+  const onCloseModal = () => {
+    setShowModal(false);
   };
 
-  render() {
-    return (
-      <StyledApp>
-        {this.state.isShowModal && (
-          <Modal
-            selectedImage={this.state.selectedImage}
-            onCloseModal={this.onCloseModal}
-            isLoading={this.state.isLoading}
-          />
-        )}
-
-        <Searchbar
-          clearCurrentPage={this.clearCurrentPage}
-          onSubmit={this.onSubmit}
+  return (
+    <StyledApp>
+      {isShowModal && (
+        <Modal
+          selectedImage={selectedImage}
+          onCloseModal={onCloseModal}
+          isLoading={isLoading}
         />
+      )}
 
-        {this.state.isLoading && <Loader />}
+      <Searchbar onSubmit={onSubmit} />
 
-        <ImageGallery
-          images={this.state.images}
-          onSelectedImage={this.onSelectedImage}
-        />
+      {isLoading && <Loader />}
 
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
+      <ImageGallery images={imagesState} onSelectedImage={onSelectedImage} />
 
-        {this.state.isShowLoadMore && (
-          <Button onSubmit={this.onSubmit} query={this.state.query} />
-        )}
-      </StyledApp>
-    );
-  }
-}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+
+      {isShowLoadMore && <Button onSubmit={onSubmit} query={query} />}
+    </StyledApp>
+  );
+};

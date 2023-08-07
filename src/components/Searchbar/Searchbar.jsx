@@ -1,5 +1,7 @@
-import { Component } from 'react';
-import PropTypes from 'prop-types'
+import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import {
   StyledSearchbar,
   StyledSearchForm,
@@ -8,42 +10,67 @@ import {
   StyledSearchFormInput,
 } from './StyledSearchbar';
 
-export class Searchbar extends Component {
-  state = {
-    input: '',
+const toastConfig = {
+  position: 'top-right',
+  autoClose: 5000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+  theme: 'colored',
+};
+
+export const Searchbar = ({ onSubmit }) => {
+  const [input, setInput] = useState('');
+
+  const handleChange = e => {
+    setInput(e.target.value);
   };
 
-  handleChange = e => {
-    this.setState({ input: e.target.value });
-  };
-
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    this.props.onSubmit(this.state.input);
-    this.setState({ input: '' });
+    if (input.trim() === '') {
+      toast.warning(`Please enter a search query`, toastConfig);
+    }
+
+    onSubmit(input);
+
+    setInput('');
   };
 
-  render() {
-    return (
-      <StyledSearchbar>
-        <StyledSearchForm onSubmit={this.handleSubmit}>
-          <StyledSearchFormButton type="submit">
-            <StyledSearchFormBtnLabel>Search</StyledSearchFormBtnLabel>
-          </StyledSearchFormButton>
+  return (
+    <StyledSearchbar>
+      <StyledSearchForm onSubmit={handleSubmit}>
+        <StyledSearchFormButton type="submit">
+          <StyledSearchFormBtnLabel>Search</StyledSearchFormBtnLabel>
+        </StyledSearchFormButton>
 
-          <StyledSearchFormInput
-            type="text"
-            autocomplete="off"
-            autofocus
-            placeholder="Search images and photos"
-            onChange={this.handleChange}
-          />
-        </StyledSearchForm>
-      </StyledSearchbar>
-    );
-  }
-}
+        <StyledSearchFormInput
+          type="text"
+          autocomplete="off"
+          autofocus
+          placeholder="Search images and photos"
+          onChange={handleChange}
+        />
+      </StyledSearchForm>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+    </StyledSearchbar>
+  );
+};
 
 Searchbar.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-}
+  onSubmit: PropTypes.func,
+};

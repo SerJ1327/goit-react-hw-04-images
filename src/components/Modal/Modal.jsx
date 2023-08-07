@@ -1,37 +1,31 @@
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { Component } from 'react';
 import { StyledOverlay, StyledModal } from './StyledModal';
 
-export class Modal extends Component {
-  handleKeyDown = e => {
-    e.code === 'Escape' && this.props.onCloseModal();
+export const Modal = ({ selectedImage, onCloseModal, isLoading }) => {
+  const handleOverlayClick = e => {
+    e.currentTarget === e.target && onCloseModal();
   };
 
-  handleOverlayClick = e => {
-    e.currentTarget === e.target && this.props.onCloseModal();
-      };
+  useEffect(() => {
+    const handleKeyDown = e => {
+      e.code === 'Escape' && onCloseModal();
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeyDown);
-  }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  render() {
-    return (
-      <StyledOverlay onClick={this.handleOverlayClick}>
-        <StyledModal>
-          <img
-            src={this.props.selectedImage.URL}
-            alt={this.props.selectedImage.alt}
-          ></img>
-        </StyledModal>
-      </StyledOverlay>
-    );
-  }
-}
+  return (
+    <StyledOverlay onClick={handleOverlayClick}>
+      <StyledModal>
+        <img src={selectedImage.URL} alt={selectedImage.alt}></img>
+      </StyledModal>
+    </StyledOverlay>
+  );
+};
 
 Modal.propTypes = {
   selectedImage: PropTypes.object.isRequired,

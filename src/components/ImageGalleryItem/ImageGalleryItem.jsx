@@ -8,6 +8,7 @@ export const ImageGalleryItem = ({ image, onSelectedImage }) => {
   return (
     <StyledImageGalleryItem key={image.id}>
       <StyledImageGalleryItemImg
+        key="3"
         onClick={() =>
           onSelectedImage({ URL: image.largeImageURL, alt: image.tags })
         }
